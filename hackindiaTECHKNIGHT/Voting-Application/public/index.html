@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Decentralized Voting System</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            margin-top: 20px;
+            color: #333;
+        }
+        div {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin: 10px;
+            width: 90%;
+            max-width: 600px;
+        }
+        input[type="text"], input[type="number"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #candidateInfo {
+            margin-top: 10px;
+            padding: 10px;
+            background: #e9ecef;
+            border-radius: 4px;
+        }
+        @media (max-width: 768px) {
+            input[type="text"], input[type="number"] {
+                width: calc(100% - 16px);
+            }
+            button {
+                width: 100%;
+            }
+        }
+        @media (max-width: 480px) {
+            div {
+                padding: 15px;
+            }
+            input[type="text"], input[type="number"] {
+                padding: 8px;
+                margin: 8px 0;
+            }
+            button {
+                padding: 8px 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Decentralized Voting System</h1>
+    <div>
+        <h2>Add Candidate</h2>
+        <input type="text" id="candidateName" placeholder="Candidate Name">
+        <button onclick="addCandidate()">Add Candidate</button>
+    </div>
+    <div>
+        <h2>Vote</h2>
+        <input type="number" id="candidateId" placeholder="Candidate ID">
+        <button onclick="vote()">Vote</button>
+    </div>
+    <div>
+        <h2>View Candidate</h2>
+        <input type="number" id="viewCandidateId" placeholder="Candidate ID">
+        <button onclick="viewCandidate()">View Candidate</button>
+        <div id="candidateInfo"></div>
+    </div>
+    <script>
+        if (window.ethereum) {
+            var web3 = new Web3(window.ethereum);
+            window.ethereum.request({ method: 'eth_requestAccounts' });
+        } else {
+            alert('Please install MetaMask!');
+        }
+
+        const contractAddress = '0xD7ACd2a9FD159E69Bb102A1ca21C9a3e3A5F771B'; // Replace with your contract address
+        const abi = [ /* Your contract ABI here */ ];
+        const contract = new web3.eth.Contract(abi, contractAddress);
+
+        async function addCandidate() {
+            try {
+                const accounts = await web3.eth.getAccounts();
+                const name = document.getElementById('candidateName').value;
+                await contract.methods.addCandidate(name).send({ from: accounts[0] });
+                alert('Candidate added successfully');
+            } catch (error) {
+                alert('Error adding candidate: ' + error.message);
+            }
+        }
+
+        async function vote() {
+            try {
+                const accounts = await web3.eth.getAccounts();
+                const id = document.getElementById('candidateId').value;
+                await contract.methods.vote(id).send({ from: accounts[0] });
+                alert('Vote cast successfully');
+            } catch (error) {
+                alert('Error casting vote: ' + error.message);
+            }
+        }
+
+        async function viewCandidate() {
+            try {
+                const id = document.getElementById('viewCandidateId').value;
+                const candidate = await contract.methods.getCandidate(id).call();
+                document.getElementById('candidateInfo').innerText = `Name: ${candidate.name}, Votes: ${candidate.voteCount}`;
+            } catch (error) {
+                document.getElementById('candidateInfo').innerText = 'Error retrieving candidate: ' + error.message;
+            }
+        }
+    </script>
+    <script src="server.js"></script>
+</body>
+</html>
